@@ -1,0 +1,42 @@
+
+digraph CityLink {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.45", ranksep="0.7", fontname="Arial", label="CityLink — Diagrama de clases (Entregable 1)", labelloc=t, fontsize=20];
+  node [shape=record, style="rounded,filled", fillcolor="#F7FAFC", color="#34495E", fontname="Arial", fontsize=10];
+  edge [color="#34495E", fontname="Arial", fontsize=9, arrowsize=0.8];
+
+  Cliente [label="{Cliente|codigo : int\lnombre : String\ltelefono : String\lz ona : String\l|getters / setters\l}"];
+  Pedido [label="{abstract Pedido|codigo : int\lcliente : Cliente\ldestino : String\lkg : double\lkm : double\lfechaHora : LocalDateTime\lestado : String\l|calcularCosto(Vehiculo) : double\lcambiarEstado(String)\lesFragil() : boolean\l}"];
+  PedidoNormal [label="{PedidoNormal| |calcularCosto(Vehiculo) : double\l}"];
+  PedidoUrgente [label="{PedidoUrgente| |calcularCosto(Vehiculo) : double\l}"];
+  PedidoFragil [label="{PedidoFragil| |calcularCosto(Vehiculo) : double\lesFragil() : boolean\l}"];
+  Vehiculo [label="{abstract Vehiculo|patente : String\lcapacidadKg : double\lvelocidadKm : double\lcostoPorKm : double\l|calcularTiempoEntrega(double) : double\lpuedeTransportar(Pedido) : boolean\l}"];
+  Bicicleta [label="{Bicicleta| |calcularTiempoEntrega(double)\lpuedeTransportar(Pedido)\l}"];
+  Moto [label="{Moto| |calcularTiempoEntrega(double)\l}"];
+  Camioneta [label="{Camioneta| |calcularTiempoEntrega(double)\l}"];
+  Repartidor [label="{Repartidor|nombre : String\llegajo : String\lvehiculo : Vehiculo\lpedidos : Pedido[]\l|asignarPedido(...)\lregistrarEntrega(Pedido)\lcalcularImporte() : double\l}"];
+  Citylink [label="{Citylink|clientes : Cliente[]\lpedidos : Pedido[]\lrepartidores : Repartidor[]\l|altas / búsquedas / asignaciones\lconsultas / cálculos / bajas\l}", fillcolor="#E8F4FD"];
+  Rastreable [label="{interface Rastreable|obtenerEstadoActual() : String\l}", fillcolor="#FFF4D6"];
+  Facturable [label="{interface Facturable|calcularImporte() : double\l}", fillcolor="#FFF4D6"];
+  Main [label="{Main| |menú y entrada por teclado\l}", fillcolor="#E8F4FD"];
+  Datos [label="{DatosIniciales| |cargar(Citylink)\l}", fillcolor="#E8F4FD"];
+
+  PedidoNormal -> Pedido [arrowhead=empty];
+  PedidoUrgente -> Pedido [arrowhead=empty];
+  PedidoFragil -> Pedido [arrowhead=empty];
+  Bicicleta -> Vehiculo [arrowhead=empty];
+  Moto -> Vehiculo [arrowhead=empty];
+  Camioneta -> Vehiculo [arrowhead=empty];
+  Pedido -> Rastreable [style=dashed, arrowhead=empty];
+  Pedido -> Facturable [style=dashed, arrowhead=empty];
+  Repartidor -> Rastreable [style=dashed, arrowhead=empty];
+  Repartidor -> Facturable [style=dashed, arrowhead=empty];
+  Pedido -> Cliente [label="1 cliente", arrowhead=vee];
+  Pedido -> Vehiculo [label="0..1 asignado", arrowhead=vee];
+  Repartidor -> Vehiculo [label="1", arrowhead=vee];
+  Repartidor -> Pedido [label="0..100", arrowhead=vee];
+  Citylink -> Cliente [label="arreglo", arrowhead=vee];
+  Citylink -> Pedido [label="arreglo", arrowhead=vee];
+  Citylink -> Repartidor [label="arreglo", arrowhead=vee];
+  Main -> Citylink [style=dashed, arrowhead=vee];
+  Datos -> Citylink [style=dashed, arrowhead=vee];
+}

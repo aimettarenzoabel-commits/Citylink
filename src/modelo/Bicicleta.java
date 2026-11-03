@@ -1,19 +1,31 @@
 package modelo;
 
+/**
+ * Vehículo liviano que no puede transportar pedidos frágiles.
+ */
 public class Bicicleta extends Vehiculo {
 
     // CONSTRUCTOR
+    /**
+     * Construye una bicicleta con sus valores de capacidad, velocidad y costo por kilómetro.
+     * @param patente parámetro de la operación
+     */
     public Bicicleta(String patente) {
         super(patente, 10, 15, 50);
     }
 
     // MÉTODO ABSTRACTO HEREDADO
+    /**
+     * Calcula el tiempo estimado para recorrer la distancia recibida, incluidos los minutos extra.
+     * @param km parámetro de la operación
+     * @return resultado de la operación
+     */
     @Override
     public double calcularTiempoEntrega(double km) {
 
-        if (km <= 0) {
+        if (!Double.isFinite(km) || km <= 0) {
             throw new IllegalArgumentException(
-                "La distancia debe ser positiva"
+                "La distancia debe ser positiva y finita"
             );
         }
 
@@ -21,6 +33,11 @@ public class Bicicleta extends Vehiculo {
     }
 
     // MÉTODO PUEDE TRANSPORTAR
+    /**
+     * Indica si el vehículo puede transportar el pedido según sus restricciones.
+     * @param pedido parámetro de la operación
+     * @return resultado de la operación
+     */
 
     @Override
     public boolean puedeTransportar(Pedido pedido) {
@@ -32,7 +49,7 @@ public class Bicicleta extends Vehiculo {
         }
 
         // La bicicleta no transporta pedidos frágiles
-        if (pedido instanceof PedidoFragil) { //Comprueba si el objeto recibido es de tipo PedidoFragil. Si lo es, devuelve true y nuestro método rechaza el transporte mediante return false.
+        if (pedido.esFragil()) { //Comprueba si el objeto recibido es de tipo PedidoFragil. Si lo es, devuelve true y nuestro método rechaza el transporte mediante return false.
             return false;
         }
 

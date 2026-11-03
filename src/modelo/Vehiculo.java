@@ -1,95 +1,198 @@
 package modelo;
 
-public abstract class Vehiculo{
+/**
+ * Clase abstracta que define las características y operaciones comunes de un vehículo.
+ */
+public abstract class Vehiculo {
 
-    //ATRIBUTOS
+    // ATRIBUTOS
     private String patente;
     private double capacidadkg;
     private double velocidadkm;
     private double costoPorKm;
+    private boolean tienePedidosAsignados;
 
-    // CONSTRUCTOR VACÍO
+    // CONSTRUCTOR VACIO
+    /**
+     * Construye un vehículo sin datos inicializados.
+     */
     public Vehiculo() {
+        this.tienePedidosAsignados = false;
     }
 
     // CONSTRUCTOR COMPLETO
+    /**
+     * Construye un vehículo sin datos inicializados.
+     * @param patente parámetro de la operación
+     * @param capacidadkg parámetro de la operación
+     * @param velocidadkm parámetro de la operación
+     * @param costoPorKm parámetro de la operación
+     */
     public Vehiculo(String patente, double capacidadkg, double velocidadkm, double costoPorKm) {
-        setPatente(patente);
-        setCapacidadkg(capacidadkg);
-        setVelocidadkm(velocidadkm);
-        setCostoPorKm(costoPorKm);
+        // Se validan los datos sin invocar setters sobrescribibles durante
+        // la construccion del objeto.
+        this.patente = validarPatente(patente);
+        this.capacidadkg = validarValorPositivoFinito(
+            capacidadkg,
+            "La capacidad debe ser positiva y finita"
+        );
+        this.velocidadkm = validarValorPositivoFinito(
+            velocidadkm,
+            "La velocidad debe ser positiva y finita"
+        );
+        this.costoPorKm = validarValorPositivoFinito(
+            costoPorKm,
+            "El costo por km debe ser positivo y finito"
+        );
+        this.tienePedidosAsignados = false;
     }
 
     // GETTERS
+    /**
+     * Devuelve la patente del vehículo.
+     * @return resultado de la operación
+     */
     public String getPatente() {
         return patente;
     }
 
+    /**
+     * Devuelve la capacidad del vehículo en kilogramos.
+     * @return resultado de la operación
+     */
     public double getCapacidadkg() {
         return capacidadkg;
     }
 
+    /**
+     * Devuelve la velocidad promedio del vehículo en kilómetros por hora.
+     * @return resultado de la operación
+     */
     public double getVelocidadkm() {
         return velocidadkm;
     }
 
+    /**
+     * Devuelve el costo por kilómetro del vehículo.
+     * @return resultado de la operación
+     */
     public double getCostoPorKm() {
         return costoPorKm;
     }
 
-    // SETTERS CON VALIDACIÓN
-    public void setPatente(String patente) {
+    // VALIDACIONES PRIVADAS COMPARTIDAS POR CONSTRUCTOR Y SETTERS
+    private static String validarPatente(String patente) {
         if (patente == null || patente.isBlank()) {
-            throw new IllegalArgumentException("La patente no puede estar vacía");
+            throw new IllegalArgumentException(
+                "La patente no puede estar vacía"
+            );
         }
-        this.patente = patente;
+        return patente;
     }
 
+    private static double validarValorPositivoFinito(double valor, String mensajeError) {
+        if (!Double.isFinite(valor) || valor <= 0) {
+            throw new IllegalArgumentException(mensajeError);
+        }
+        return valor;
+    }
+
+    // IMPIDE ALTERAR LA CONFIGURACION DESPUES DE LA PRIMERA ASIGNACION
+    private void validarConfiguracionModificable() {
+        if (tienePedidosAsignados) {
+            throw new IllegalStateException(
+                "No se puede modificar la configuración de un vehículo que ya tiene pedidos asignados"
+            );
+        }
+    }
+
+    // SETTERS CON VALIDACION
+    /**
+     * Valida y establece la patente del vehículo.
+     * @param patente parámetro de la operación
+     */
+    public void setPatente(String patente) {
+        validarConfiguracionModificable();
+        this.patente = validarPatente(patente);
+    }
+
+    /**
+     * Valida y establece la capacidad del vehículo.
+     * @param capacidadkg parámetro de la operación
+     */
     public void setCapacidadkg(double capacidadkg) {
-        if (capacidadkg <= 0) {
-            throw new IllegalArgumentException("La capacidad debe ser positiva");
-        }
-        this.capacidadkg = capacidadkg;
+        validarConfiguracionModificable();
+        this.capacidadkg = validarValorPositivoFinito(
+            capacidadkg,
+            "La capacidad debe ser positiva y finita"
+        );
     }
 
+    /**
+     * Valida y establece la velocidad promedio.
+     * @param velocidadkm parámetro de la operación
+     */
     public void setVelocidadkm(double velocidadkm) {
-        if (velocidadkm <= 0) {
-            throw new IllegalArgumentException("La velocidad debe ser positiva");
-        }
-        this.velocidadkm = velocidadkm;
+        validarConfiguracionModificable();
+        this.velocidadkm = validarValorPositivoFinito(
+            velocidadkm,
+            "La velocidad debe ser positiva y finita"
+        );
     }
 
+    /**
+     * Valida y establece el costo por kilómetro.
+     * @param costoPorKm parámetro de la operación
+     */
     public void setCostoPorKm(double costoPorKm) {
-        if (costoPorKm <= 0) {
-            throw new IllegalArgumentException("El costo por km no puede ser negativo");
-        }
-        this.costoPorKm = costoPorKm;
+        validarConfiguracionModificable();
+        this.costoPorKm = validarValorPositivoFinito(
+            costoPorKm,
+            "El costo por km debe ser positivo y finito"
+        );
     }
 
-    //MÉTODO ABSTRACTO
-    //Cada vehículo tendrá una forma distinta de calcular su tiempo de entrega según su velocidad y los minutos adicionales
-    public abstract double calcularTiempoEntrega(double km); 
+    // METODO INTERNO DEL PAQUETE MODELO, INVOCADO POR Pedido
+    void registrarPedidoAsignado() {
+        tienePedidosAsignados = true;
+    }
 
-    //MÉTODO CONCRETO
-    //Este método comprueba la capacidad por peso.
+    // METODO ABSTRACTO
+    // Cada vehiculo calcula el tiempo de entrega segun su velocidad y tiempo extra.
+    /**
+     * Calcula el tiempo estimado para recorrer la distancia recibida, incluidos los minutos extra.
+     * @param km parámetro de la operación
+     * @return resultado de la operación
+     */
+    public abstract double calcularTiempoEntrega(double km);
+
+    // METODO CONCRETO
+    // Comprueba si el vehiculo puede transportar el peso del pedido.
+    /**
+     * Indica si el vehículo puede transportar el pedido según sus restricciones.
+     * @param pedido parámetro de la operación
+     * @return resultado de la operación
+     */
     public boolean puedeTransportar(Pedido pedido) {
-
         if (pedido == null) {
             throw new IllegalArgumentException(
                 "El pedido no puede ser nulo"
             );
         }
 
-        return pedido.getKg() <= capacidadkg; 
+        return pedido.getKg() <= capacidadkg;
     }
 
-    //TOSTRING
+    // TOSTRING
+    /**
+     * Devuelve una representación textual de los datos del objeto.
+     * @return resultado de la operación
+     */
     @Override
     public String toString() {
-        return 
-        "Patente: " + patente +
-        "\nCapacidad: " + capacidadkg + " kg" +
-        "\nVelocidad: " + velocidadkm + " km/h" +
-        "\nCosto por km: $" + costoPorKm;
+        return "Patente: " + patente
+            + "\nCapacidad: " + capacidadkg + " kg"
+            + "\nVelocidad: " + velocidadkm + " km/h"
+            + "\nCosto por km: $" + costoPorKm;
     }
 }
