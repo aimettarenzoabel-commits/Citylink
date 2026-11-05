@@ -20,147 +20,388 @@ import modelo.Repartidor;
 import modelo.Vehiculo;
 
 /**
- * Punto de entrada del sistema Citylink.
+ * Punto de entrada y presentacion en consola del sistema Citylink.
+ * La clase organiza la navegacion y la interaccion con el usuario.
  */
 public class Main {
 
     private static final Scanner TECLADO = new Scanner(System.in);
+    private static final String VERDE = "\u001B[32m";
+    private static final String RESET = "\u001B[0m";
+    private static final String SEPARADOR =
+            "============================================================";
+    private static final String SUBSEPARADOR =
+            "------------------------------------------------------------";
 
     private Main() {
     }
 
-    /**
-     * Inicia el gestor, carga los datos de ejemplo y ejecuta el menú.
-     * @param args parámetro de la operación
-     */
     public static void main(String[] args) {
         Citylink citylink = new Citylink();
 
         try {
             DatosIniciales.cargar(citylink);
-            System.out.println("Datos iniciales cargados correctamente.");
-            ejecutarMenu(citylink);
+            ejecutarMenuPrincipal(citylink);
         } catch (ClienteNoEncontradoException | PedidoInvalidoException
                 | AlmacenamientoLlenoException e) {
+            limpiarPantalla();
+            mostrarEncabezado("ERROR DE INICIALIZACION");
             System.out.println("No se pudieron cargar los datos iniciales: " + e.getMessage());
+            esperarContinuar();
         } finally {
+            limpiarPantalla();
+            mostrarEncabezado("SISTEMA FINALIZADO");
+            System.out.println("Gracias por utilizar Citylink. Vuelve pronto :)");
             TECLADO.close();
-            System.out.println("Sistema Citylink finalizado.");
         }
     }
 
-    private static void ejecutarMenu(Citylink citylink) {
+    private static void ejecutarMenuPrincipal(Citylink citylink) {
         boolean continuar = true;
 
         while (continuar) {
-            mostrarMenu();
-            int opcion = leerEntero("Elegí una opción: ");
+            limpiarPantalla();
+            mostrarEncabezado("CITYLINK");
+            mostrarResumen(citylink);
+            System.out.println(SEPARADOR);
+            centrar("MENU PRINCIPAL");
+            System.out.println(SEPARADOR);
+            System.out.println();
+            System.out.println("  [1] Gestión de clientes");
+            System.out.println("  [2] Gestión de repartidores");
+            System.out.println("  [3] Gestión de pedidos");
+            System.out.println("  [4] Asignaciones");
+            System.out.println("  [5] Consultas y reportes");
+            System.out.println();
+            System.out.println("  [0] Salir");
+            System.out.println(SEPARADOR);
 
-            try {
-                switch (opcion) {
-                    case 1:
-                        registrarCliente(citylink);
-                        break;
-                    case 2:
-                        registrarRepartidor(citylink);
-                        break;
-                    case 3:
-                        registrarPedido(citylink);
-                        break;
-                    case 4:
-                        asignarPedido(citylink);
-                        break;
-                    case 5:
-                        cambiarEstado(citylink);
-                        break;
-                    case 6:
-                        buscarCliente(citylink);
-                        break;
-                    case 7:
-                        listarPedidos(citylink);
-                        break;
-                    case 8:
-                        consultarEstado(citylink);
-                        break;
-                    case 9:
-                        consultarImportes(citylink);
-                        break;
-                    case 10:
-                        continuar = false;
-                        break;
-                    default:
-                        System.out.println("Opción inexistente. Elegí un número del 1 al 10.");
-                }
-            } catch (ClienteNoEncontradoException | PedidoInvalidoException
-                    | CapacidadExcedidaException e) {
-                System.out.println("No se pudo completar la operación: " + e.getMessage());
-            } catch (AlmacenamientoLlenoException e) {
-                System.out.println("No hay espacio disponible: " + e.getMessage());
-            } catch (RuntimeException e) {
-                System.out.println("Operación rechazada: " + e.getMessage());
-            } finally {
-                if (continuar) {
-                    System.out.println("\n--- Operación finalizada ---");
-                }
+            int opcion = leerOpcion("Elegí una opción: ", 0, 5);
+            switch (opcion) {
+                case 1:
+                    ejecutarMenuClientes(citylink);
+                    break;
+                case 2:
+                    ejecutarMenuRepartidores(citylink);
+                    break;
+                case 3:
+                    ejecutarMenuPedidos(citylink);
+                    break;
+                case 4:
+                    ejecutarMenuAsignaciones(citylink);
+                    break;
+                case 5:
+                    ejecutarMenuConsultas(citylink);
+                    break;
+                case 0:
+                    continuar = false;
+                    break;
+                default:
+                    break;
             }
         }
     }
 
-    private static void mostrarMenu() {
-        System.out.println("\n========== CITYLINK ==========");
-        System.out.println("1. Registrar cliente");
-        System.out.println("2. Registrar repartidor");
-        System.out.println("3. Registrar pedido");
-        System.out.println("4. Asignar pedido");
-        System.out.println("5. Cambiar estado de pedido");
-        System.out.println("6. Buscar cliente");
-        System.out.println("7. Listar pedidos con costo y tiempo");
-        System.out.println("8. Consultar estado de pedido o repartidor");
-        System.out.println("9. Consultar importes y comisiones");
-        System.out.println("10. Salir");
+    private static void ejecutarMenuClientes(Citylink citylink) {
+        boolean volver = false;
+        while (!volver) {
+            limpiarPantalla();
+            mostrarEncabezado("GESTIÓN DE CLIENTES");
+            System.out.println();
+            System.out.println("  [1] Registrar cliente.");
+            System.out.println("  [2] Buscar cliente.");
+            System.out.println("  [0] Volver al menu principal.");
+            System.out.println();
+            System.out.println(SEPARADOR);
+
+            int opcion = leerOpcion("Elegí una opción: ", 0, 2);
+            switch (opcion) {
+                case 1:
+                    ejecutarOperacion(() -> registrarCliente(citylink));
+                    break;
+                case 2:
+                    ejecutarOperacion(() -> buscarCliente(citylink));
+                    break;
+                case 0:
+                    volver = true;
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
-    private static void registrarCliente(Citylink citylink) throws AlmacenamientoLlenoException {
-        System.out.println("\n--- Nuevo cliente ---");
+    private static void ejecutarMenuRepartidores(Citylink citylink) {
+        boolean volver = false;
+        while (!volver) {
+            limpiarPantalla();
+            mostrarEncabezado("GESTIÓN DE REPARTIDORES");
+            System.out.println();
+            System.out.println("  [1] Registrar repartidor.");
+            System.out.println("  [2] Buscar repartidor.");
+            System.out.println("  [0] Volver al menu principal.");
+            System.out.println();
+            System.out.println(SEPARADOR);
+
+            int opcion = leerOpcion("Elegí una opción: ", 0, 2);
+            switch (opcion) {
+                case 1:
+                    ejecutarOperacion(() -> registrarRepartidor(citylink));
+                    break;
+                case 2:
+                    ejecutarOperacion(() -> buscarRepartidor(citylink));
+                    break;
+                case 0:
+                    volver = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private static void ejecutarMenuPedidos(Citylink citylink) {
+        boolean volver = false;
+        while (!volver) {
+            limpiarPantalla();
+            mostrarEncabezado("GESTIÓN DE PEDIDOS");
+            System.out.println();
+            System.out.println("  [1] Registrar pedido.");
+            System.out.println("  [2] Listar pedidos con costo y tiempo.");
+            System.out.println("  [0] Volver al menu principal.");
+            System.out.println();
+            System.out.println(SEPARADOR);
+
+            int opcion = leerOpcion("Elegí una opción: ", 0, 2);
+            switch (opcion) {
+                case 1:
+                    ejecutarOperacion(() -> registrarPedido(citylink));
+                    break;
+                case 2:
+                    ejecutarOperacion(() -> listarPedidos(citylink));
+                    break;
+                case 0:
+                    volver = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private static void ejecutarMenuAsignaciones(Citylink citylink) {
+        boolean volver = false;
+        while (!volver) {
+            limpiarPantalla();
+            mostrarEncabezado("ASIGNACIONES");
+            System.out.println();
+            System.out.println("  [1] Asignar pedido a repartidor.");
+            System.out.println("  [2] Cambiar estado de pedido.");
+            System.out.println("  [0] Volver al menu principal.");
+            System.out.println();
+            System.out.println(SEPARADOR);
+
+            int opcion = leerOpcion("Elegí una opción: ", 0, 2);
+            switch (opcion) {
+                case 1:
+                    ejecutarOperacion(() -> asignarPedido(citylink));
+                    break;
+                case 2:
+                    ejecutarOperacion(() -> cambiarEstado(citylink));
+                    break;
+                case 0:
+                    volver = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private static void ejecutarMenuConsultas(Citylink citylink) {
+        boolean volver = false;
+        while (!volver) {
+            limpiarPantalla();
+            mostrarEncabezado("CONSULTAS Y REPORTES");
+            System.out.println();
+            System.out.println("  [1] Consultar estado de pedido o repartidor.");
+            System.out.println("  [2] Consultar importes y comisiones.");
+            System.out.println("  [0] Volver al menu principal.");
+            System.out.println();
+            System.out.println(SEPARADOR);
+
+            int opcion = leerOpcion("Elegí una opción: ", 0, 2);
+            switch (opcion) {
+                case 1:
+                    ejecutarOperacion(() -> consultarEstado(citylink));
+                    break;
+                case 2:
+                    ejecutarOperacion(() -> consultarImportes(citylink));
+                    break;
+                case 0:
+                    volver = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    @FunctionalInterface
+    private interface Operacion {
+        void ejecutar() throws Exception;
+    }
+
+    private static void ejecutarOperacion(Operacion operacion) {
+        limpiarPantalla();
+        try {
+            operacion.ejecutar();
+        } catch (ClienteNoEncontradoException | PedidoInvalidoException
+                | CapacidadExcedidaException e) {
+            mostrarRechazo(e.getMessage());
+        } catch (AlmacenamientoLlenoException e) {
+            mostrarRechazo(e.getMessage());
+        } catch (EntradaInvalidaException e) {
+            // El mensaje y la pausa ya se mostraron al detectar la entrada invalida.
+            return;
+        } catch (RuntimeException e) {
+            mostrarRechazo(e.getMessage());
+        } catch (Exception e) {
+            mostrarRechazo(e.getMessage());
+        }
+        esperarContinuar();
+    }
+
+    private static void registrarCliente(Citylink citylink)
+            throws AlmacenamientoLlenoException {
+        mostrarEncabezado("REGISTRAR CLIENTE");
         String nombre = leerTexto("Nombre: ");
         String telefono = leerTexto("Teléfono: ");
         int codigo = leerEntero("Código: ");
         String zona = leerTexto("Zona: ");
 
         citylink.agregarCliente(new Cliente(nombre, telefono, codigo, zona));
-        System.out.println("Cliente registrado correctamente.");
+        mostrarExito("CLIENTE REGISTRADO CON ÉXITO");
     }
 
-    private static void registrarRepartidor(Citylink citylink) throws AlmacenamientoLlenoException {
-        System.out.println("\n--- Nuevo repartidor ---");
-        String nombre = leerTexto("Nombre: ");
-        String legajo = leerTexto("Legajo: ");
-        System.out.println("Vehículo: 1. Bicicleta | 2. Moto | 3. Camioneta");
-        int tipo = leerEntero("Tipo: ");
-        String patente = leerTexto("Patente: ");
+    private static void buscarCliente(Citylink citylink)
+            throws ClienteNoEncontradoException {
+        mostrarEncabezado("BUSCAR CLIENTE");
+        System.out.println("Criterio de búsqueda:");
+        System.out.println("  [1] Por código");
+        System.out.println("  [2] Por nombre");
+        System.out.println(SEPARADOR);
+        int criterio = leerOpcion("Elegí una opción: ", 1, 2);
 
-        Vehiculo vehiculo;
-        switch (tipo) {
-            case 1:
-                vehiculo = new Bicicleta(patente);
-                break;
-            case 2:
-                vehiculo = new Moto(patente);
-                break;
-            case 3:
-                vehiculo = new Camioneta(patente);
-                break;
-            default:
-                throw new IllegalArgumentException("Tipo de vehículo inexistente.");
+        Cliente encontrado;
+        if (criterio == 1) {
+            int codigo = leerEntero("Código: ");
+            encontrado = citylink.buscarCliente(codigo);
+        } else {
+            String nombre = leerTexto("Nombre: ");
+            encontrado = null;
+            String consulta = normalizar(nombre);
+            for (Cliente cliente : citylink.getClientes()) {
+                if (normalizar(cliente.getNombre()).contains(consulta)) {
+                    encontrado = cliente;
+                    break;
+                }
+            }
+            if (encontrado == null) {
+                throw new ClienteNoEncontradoException(
+                        "No se encontro un cliente cuyo nombre contenga: " + nombre);
+            }
         }
 
-        citylink.agregarRepartidor(new Repartidor(nombre, legajo, vehiculo));
-        System.out.println("Repartidor registrado correctamente.");
+        System.out.println(SEPARADOR);
+        centrar("RESULTADO");
+        System.out.println(SEPARADOR);
+        imprimirCliente(encontrado);
+        System.out.println(SEPARADOR);
+    }
+
+    private static void registrarRepartidor(Citylink citylink)
+            throws AlmacenamientoLlenoException {
+        mostrarEncabezado("REGISTRAR REPARTIDOR");
+        String nombre = leerTexto("Nombre: ");
+        String legajo = leerTexto("Legajo: ");
+
+        System.out.println(SEPARADOR);
+        System.out.println("Tipo de vehículo:");
+        System.out.println();
+        System.out.println("  [1] Bicicleta");
+        System.out.println("  [2] Moto");
+        System.out.println("  [3] Camioneta");
+        System.out.println(SEPARADOR);
+        int tipo = leerOpcion("Seleccioná el tipo: ", 1, 3);
+        String patente = leerTexto("Patente: ");
+
+        Vehiculo vehículo;
+        switch (tipo) {
+            case 1:
+                vehículo = new Bicicleta(patente);
+                break;
+            case 2:
+                vehículo = new Moto(patente);
+                break;
+            case 3:
+                vehículo = new Camioneta(patente);
+                break;
+            default:
+                throw new IllegalArgumentException("Tipo de vehículo invalido.");
+        }
+
+        citylink.agregarRepartidor(new Repartidor(nombre, legajo, vehículo));
+        mostrarExito("REPARTIDOR REGISTRADO CON ÉXITO");
+    }
+
+    private static void buscarRepartidor(Citylink citylink) {
+        mostrarEncabezado("BUSCAR REPARTIDOR");
+        System.out.println("Criterio de búsqueda:");
+        System.out.println("  [1] Por legajo.");
+        System.out.println("  [2] Por nombre.");
+        System.out.println(SEPARADOR);
+        int criterio = leerOpcion("Elegí una opción: ", 1, 2);
+
+        Repartidor encontrado = null;
+        if (criterio == 1) {
+            String legajo = leerTexto("Legajo: ");
+            for (Repartidor repartidor : citylink.getRepartidores()) {
+                if (repartidor.getLegajo().equalsIgnoreCase(legajo)) {
+                    encontrado = repartidor;
+                    break;
+                }
+            }
+            if (encontrado == null) {
+                mostrarErrorEntrada();
+                throw new EntradaInvalidaException();
+            }
+        } else {
+            String nombre = leerTexto("Nombre: ");
+            String consulta = normalizar(nombre);
+            for (Repartidor repartidor : citylink.getRepartidores()) {
+                if (normalizar(repartidor.getNombre()).contains(consulta)) {
+                    encontrado = repartidor;
+                    break;
+                }
+            }
+            if (encontrado == null) {
+                throw new IllegalArgumentException(
+                        "No se encontro un repartidor cuyo nombre contenga: " + nombre);
+            }
+        }
+
+        System.out.println(SEPARADOR);
+        centrar("RESULTADO");
+        System.out.println(SEPARADOR);
+        imprimirRepartidor(encontrado);
+        System.out.println(SEPARADOR);
     }
 
     private static void registrarPedido(Citylink citylink)
-            throws ClienteNoEncontradoException, PedidoInvalidoException, AlmacenamientoLlenoException {
-        System.out.println("\n--- Nuevo pedido ---");
+            throws ClienteNoEncontradoException, PedidoInvalidoException,
+            AlmacenamientoLlenoException {
+        mostrarEncabezado("REGISTRAR PEDIDO");
         int codigo = leerEntero("Código del pedido: ");
         int codigoCliente = leerEntero("Código del cliente: ");
         Cliente cliente = citylink.buscarCliente(codigoCliente);
@@ -168,11 +409,17 @@ public class Main {
         double kg = leerDecimal("Peso en kg: ");
         double km = leerDecimal("Distancia en km: ");
 
-        System.out.println("Tipo: 1. Normal | 2. Urgente | 3. Frágil");
-        int tipo = leerEntero("Tipo de pedido: ");
+        System.out.println(SEPARADOR);
+        System.out.println("Tipo de pedido:");
+        System.out.println();
+        System.out.println("  [1] Normal");
+        System.out.println("  [2] Urgente");
+        System.out.println("  [3] Frágil");
+        System.out.println(SEPARADOR);
+        int tipo = leerOpcion("Seleccioná el tipo: ", 1, 3);
+
         LocalDateTime fecha = LocalDateTime.now();
         Pedido pedido;
-
         switch (tipo) {
             case 1:
                 pedido = new PedidoNormal(codigo, cliente, destino, kg, km, fecha);
@@ -184,136 +431,266 @@ public class Main {
                 pedido = new PedidoFragil(codigo, cliente, destino, kg, km, fecha);
                 break;
             default:
-                throw new IllegalArgumentException("Tipo de pedido inexistente.");
+                throw new IllegalArgumentException("Tipo de pedido invalido.");
         }
 
         citylink.agregarPedido(pedido);
-        System.out.println("Pedido registrado correctamente.");
-    }
-
-    private static void asignarPedido(Citylink citylink)
-            throws CapacidadExcedidaException {
-        int codigo = leerEntero("Código del pedido: ");
-        String legajo = leerTexto("Legajo del repartidor: ");
-        citylink.asignarPedido(codigo, legajo);
-        System.out.println("Pedido asignado correctamente.");
-    }
-
-    private static void cambiarEstado(Citylink citylink) {
-        int codigo = leerEntero("Código del pedido: ");
-        System.out.println("Estado nuevo: 1. EN_CAMINO | 2. CANCELADO | 3. ENTREGADO");
-        int opcion = leerEntero("Elegí: ");
-
-        if (opcion == 1) {
-            citylink.cambiarEstadoPedido(codigo, "EN_CAMINO");
-        } else if (opcion == 2) {
-            citylink.cambiarEstadoPedido(codigo, "CANCELADO");
-        } else if (opcion == 3) {
-            String legajo = leerTexto("Legajo del repartidor responsable: ");
-            citylink.registrarEntrega(codigo, legajo);
-        } else {
-            throw new IllegalArgumentException("Estado inexistente.");
-        }
-        System.out.println("Estado actualizado correctamente.");
-    }
-
-    private static void buscarCliente(Citylink citylink)
-            throws ClienteNoEncontradoException {
-        System.out.println("Buscar por: 1. Código | 2. Nombre");
-        int opcion = leerEntero("Elegí: ");
-        Cliente cliente;
-
-        if (opcion == 1) {
-            cliente = citylink.buscarCliente(leerEntero("Código: "));
-        } else if (opcion == 2) {
-            cliente = citylink.buscarCliente(leerTexto("Nombre: "));
-        } else {
-            throw new IllegalArgumentException("Criterio de búsqueda inexistente.");
-        }
-        System.out.println(cliente);
+        mostrarExito("PEDIDO REGISTRADO CON ÉXITO");
     }
 
     private static void listarPedidos(Citylink citylink) {
+        mostrarEncabezado("LISTADO DE PEDIDOS");
         Pedido[] pedidos = citylink.getPedidos();
         if (pedidos.length == 0) {
             System.out.println("No hay pedidos registrados.");
             return;
         }
 
-        for (Pedido pedido : pedidos) {
-            System.out.println("\n" + pedido);
+        for (int i = 0; i < pedidos.length; i++) {
+            Pedido pedido = pedidos[i];
+            System.out.println();
+            System.out.println("PEDIDO " + pedido.getCodigo());
+            System.out.println("Pedido: " + pedido.getCodigo());
+            imprimirCliente(pedido.getCliente());
+            System.out.println("Destino: " + pedido.getDestino());
+            System.out.println("Peso: " + pedido.getKg() + " kg");
+            System.out.println("Distancia: " + pedido.getKm() + " km");
+            System.out.println("Fecha y hora de ingreso: " + pedido.getFechaHora());
+            System.out.println("Estado: " + pedido.getEstado());
+
             if (pedido.getVehiculoAsignado() == null) {
                 System.out.println("Costo y tiempo: pendientes de asignación.");
             } else {
-                System.out.printf("Costo: $%.2f%n", citylink.calcularCostoPedido(pedido.getCodigo()));
+                System.out.printf("Costo: $%.2f%n",
+                        citylink.calcularCostoPedido(pedido.getCodigo()));
                 System.out.printf("Tiempo estimado: %.2f minutos%n",
                         citylink.calcularTiempoEstimadoPedido(pedido.getCodigo()));
             }
+
+            if (i < pedidos.length - 1) {
+                System.out.println(SUBSEPARADOR);
+            }
         }
+        System.out.println(SEPARADOR);
+    }
+
+    private static void asignarPedido(Citylink citylink)
+            throws CapacidadExcedidaException {
+        mostrarEncabezado("ASIGNAR PEDIDO");
+        int codigo = leerEntero("Código del pedido: ");
+        String legajo = leerTexto("Legajo del repartidor: ");
+        citylink.asignarPedido(codigo, legajo);
+        mostrarExito("PEDIDO ASIGNADO CON ÉXITO");
+    }
+
+    private static void cambiarEstado(Citylink citylink) {
+        mostrarEncabezado("CAMBIAR ESTADO DEL PEDIDO");
+        int codigo = leerEntero("Código del pedido: ");
+        System.out.println(SEPARADOR);
+        System.out.println("Nuevo estado:");
+        System.out.println();
+        System.out.println("  [1] EN_CAMINO");
+        System.out.println("  [2] CANCELADO");
+        System.out.println("  [3] ENTREGADO");
+        System.out.println(SEPARADOR);
+        int opcion = leerOpcion("Seleccioná el estado: ", 1, 3);
+
+        if (opcion == 1) {
+            citylink.cambiarEstadoPedido(codigo, "EN_CAMINO");
+        } else if (opcion == 2) {
+            citylink.cambiarEstadoPedido(codigo, "CANCELADO");
+        } else {
+            String legajo = leerTexto("Legajo del repartidor responsable: ");
+            citylink.registrarEntrega(codigo, legajo);
+        }
+        mostrarExito("ESTADO ACTUALIZADO CON ÉXITO");
     }
 
     private static void consultarEstado(Citylink citylink) {
-        System.out.println("Consultar: 1. Pedido | 2. Repartidor");
-        int opcion = leerEntero("Elegí: ");
+        mostrarEncabezado("CONSULTAR ESTADO");
+        System.out.println("Consultar:");
+        System.out.println("  [1] Pedido");
+        System.out.println("  [2] Repartidor");
+        System.out.println(SEPARADOR);
+        int opcion = leerOpcion("Seleccioná una opción: ", 1, 2);
+
         if (opcion == 1) {
             int codigo = leerEntero("Código del pedido: ");
+            System.out.println(SEPARADOR);
             System.out.println("Estado: " + citylink.consultarEstadoPedido(codigo));
-        } else if (opcion == 2) {
-            String legajo = leerTexto("Legajo del repartidor: ");
-            System.out.println("Estado: " + citylink.consultarEstadoRepartidor(legajo));
         } else {
-            throw new IllegalArgumentException("Opción inexistente.");
+            String legajo = leerTexto("Legajo del repartidor: ");
+            System.out.println(SEPARADOR);
+            System.out.println("Estado: " + citylink.consultarEstadoRepartidor(legajo));
         }
+        System.out.println(SEPARADOR);
     }
 
     private static void consultarImportes(Citylink citylink) {
-        System.out.printf("Importe total cotizado de pedidos asignados: $%.2f%n",
-                citylink.calcularImporteTotalPedidos());
-        System.out.printf("Comisiones totales: $%.2f%n",
-                citylink.calcularComisionesTotales());
+        mostrarEncabezado("IMPORTES Y COMISIONES");
+        System.out.println();
+        System.out.println("Importe total cotizado de pedidos asignados:");
+        System.out.printf("$%.2f%n", citylink.calcularImporteTotalPedidos());
+        System.out.println();
+        System.out.println("Comisiones totales:");
+        System.out.printf("$%.2f%n", citylink.calcularComisionesTotales());
+        System.out.println(SEPARADOR);
+        centrar("COMISION POR REPARTIDOR");
+        System.out.println(SEPARADOR);
 
         for (Repartidor repartidor : citylink.getRepartidores()) {
-            System.out.printf("Comisión de %s (%s): $%.2f%n",
+            System.out.printf("%s (%s): $%.2f%n",
                     repartidor.getNombre(), repartidor.getLegajo(),
                     citylink.calcularComisionRepartidor(repartidor.getLegajo()));
         }
+        System.out.println(SEPARADOR);
         System.out.println("Pedidos sin asignar: " + citylink.contarPedidosSinAsignar());
     }
 
-    private static String leerTexto(String mensaje) {
-        System.out.print(mensaje);
-        String valor = TECLADO.nextLine().trim();
-        if (valor.isEmpty()) {
-            throw new IllegalArgumentException("El valor no puede estar vacío.");
+    private static void mostrarResumen(Citylink citylink) {
+        System.out.println("RESUMEN DEL SISTEMA");
+        System.out.printf("Clientes: %d     Pedidos: %d     Repartidores: %d%n",
+                citylink.getCantidadClientes(),
+                citylink.getCantidadPedidos(),
+                citylink.getCantidadRepartidores());
+    }
+
+    private static void mostrarEncabezado(String titulo) {
+        System.out.println(SEPARADOR);
+        centrar(titulo);
+        System.out.println(SEPARADOR);
+    }
+
+    private static void centrar(String texto) {
+        int espacios = Math.max(0, (SEPARADOR.length() - texto.length()) / 2);
+        System.out.println(" ".repeat(espacios) + texto);
+    }
+
+    private static void imprimirCliente(Cliente cliente) {
+        System.out.println("Cliente: " + cliente.getNombre());
+        System.out.println("Código: " + cliente.getCodigo());
+        System.out.println("Teléfono: " + cliente.getTelefono());
+        System.out.println("Zona: " + cliente.getZona());
+    }
+
+    private static void imprimirRepartidor(Repartidor repartidor) {
+        Vehiculo vehículo = repartidor.getVehiculo();
+        System.out.println("Repartidor: " + repartidor.getNombre());
+        System.out.println("Legajo: " + repartidor.getLegajo());
+        System.out.println("Vehículo: " + nombreVehiculo(vehículo));
+        System.out.println("Patente: " + vehículo.getPatente());
+    }
+
+    private static String nombreVehiculo(Vehiculo vehículo) {
+        return vehículo.getClass().getSimpleName();
+    }
+
+    private static String normalizar(String texto) {
+        return texto.toLowerCase(java.util.Locale.ROOT).trim();
+    }
+
+    private static void mostrarExito(String mensaje) {
+        System.out.println(SEPARADOR);
+        System.out.println("[" + mensaje + "]");
+    }
+
+    private static void mostrarRechazo(String mensaje) {
+        System.out.println(SEPARADOR);
+        System.out.println("[OPERACIÓN RECHAZADA: "
+                + (mensaje == null ? "No se pudo completar la operacion." : mensaje) + "]");
+    }
+
+    private static int leerOpcion(String mensaje, int minimo, int maximo) {
+        while (true) {
+            String entrada = leerTextoConPrompt(mensaje);
+            try {
+                int opcion = Integer.parseInt(entrada);
+                if (opcion >= minimo && opcion <= maximo) {
+                    return opcion;
+                }
+            } catch (NumberFormatException e) {
+                // Se informa debajo y se vuelve a solicitar la opcion.
+            }
+            mostrarErrorEntrada();
         }
-        return valor;
     }
 
     private static int leerEntero(String mensaje) {
-        while (true) {
-            System.out.print(mensaje);
-            String entrada = TECLADO.nextLine().trim();
-            try {
-                return Integer.parseInt(entrada);
-            } catch (NumberFormatException e) {
-                System.out.println("Ingresá un número entero válido.");
-            }
+        String entrada = leerTextoConPrompt(mensaje);
+        try {
+            return Integer.parseInt(entrada);
+        } catch (NumberFormatException e) {
+            mostrarErrorEntrada();
+            throw new EntradaInvalidaException();
         }
     }
 
     private static double leerDecimal(String mensaje) {
-        while (true) {
-            System.out.print(mensaje);
-            String entrada = TECLADO.nextLine().trim().replace(',', '.');
-            try {
-                double valor = Double.parseDouble(entrada);
-                if (Double.isFinite(valor) && valor > 0) {
-                    return valor;
-                }
-                System.out.println("Ingresá un número positivo y finito.");
-            } catch (NumberFormatException e) {
-                System.out.println("Ingresá un número válido. Podés usar coma o punto decimal.");
+        String entrada = leerTextoConPrompt(mensaje).replace(',', '.');
+        try {
+            double valor = Double.parseDouble(entrada);
+            if (!Double.isFinite(valor) || valor <= 0) {
+                throw new NumberFormatException();
             }
+            return valor;
+        } catch (NumberFormatException e) {
+            mostrarErrorEntrada();
+            throw new EntradaInvalidaException();
         }
+    }
+
+    private static String leerTexto(String mensaje) {
+        String valor = leerTextoConPrompt(mensaje);
+        if (valor.isEmpty()) {
+            mostrarErrorEntrada();
+            throw new EntradaInvalidaException();
+        }
+        return valor;
+    }
+
+    private static String leerTextoConPrompt(String mensaje) {
+        System.out.print(mensaje);
+        if (!TECLADO.hasNextLine()) {
+            throw new EntradaInvalidaException();
+        }
+        return TECLADO.nextLine().trim();
+    }
+
+    private static void mostrarErrorEntrada() {
+        System.out.println(SEPARADOR);
+        System.out.println("Opción inválida. Intente de nuevo.");
+        esperarContinuar();
+    }
+
+    private static void esperarContinuar() {
+        System.out.println();
+        System.out.print("Presiona ENTER para continuar...");
+        if (TECLADO.hasNextLine()) {
+            TECLADO.nextLine();
+        }
+    }
+
+    private static void limpiarPantalla() {
+        String sistema = System.getProperty("os.name").toLowerCase();
+        if (sistema.contains("win")) {
+            try {
+                new ProcessBuilder("cmd", "/c", "cls")
+                        .inheritIO()
+                        .start()
+                        .waitFor();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.out.println("\n\n\n\n\n\n");
+            } catch (java.io.IOException e) {
+                System.out.println("\n\n\n\n\n\n");
+            }
+        } else {
+            System.out.print("\u001B[H\u001B[2J");
+            System.out.flush();
+        }
+    }
+
+    private static final class EntradaInvalidaException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
     }
 }
