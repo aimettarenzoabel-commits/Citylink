@@ -1,0 +1,21 @@
+# Compilación Java
+out/
+build/
+target/
+*.class
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos temporales y respaldos
+*.bak
+*.tmp
+*~
+src_backup_*/
+src_anterior/
