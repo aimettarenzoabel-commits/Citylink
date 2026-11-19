@@ -367,13 +367,7 @@ public class Citylink {
             new Accion("ASIGNACION", pedido, repartidor, null)
         );
     }
-
-    /**
-     * Solicita el cambio de estado de un pedido aplicando las reglas de transición.
-     * @param codigoPedido parámetro de la operación
-     * @param nuevoEstado parámetro de la operación
-     */
-
+    
     /**
      * Atiende el siguiente pedido pendiente, priorizando los urgentes.
      * Busca un repartidor compatible, asigna el pedido y lo pone en camino.
